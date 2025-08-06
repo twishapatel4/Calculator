@@ -1,12 +1,11 @@
-// === Display Elements ===
+//  Display Elements
 const display = document.querySelector(".display");
-const partialSum = document.querySelector(".partial-sum");
+const partialSum = document.querySelectorAll(".partial-sum");
+const displaymode = document.querySelector(".displayMode");
 
-// Memory Buttons
-const memoryButtons = document.querySelectorAll(".memory");
+console.log(displaymode);
 
-// Mode Buttons (DEG, F-E)
-const modeButtons = document.querySelectorAll(".mode");
+const mfeBtn = document.querySelector(".mfe");
 const msBtn = document.querySelector(".ms");
 const mpBtn = document.querySelector(".mp");
 const mmBtn = document.querySelector(".mm");
@@ -61,6 +60,8 @@ let isPowerOp = false;
 let powerBase = null;
 let degree = false;
 let memory = 0;
+let mfe = false;
+//true: e; false:f
 //functions
 
 const clear = function () {
@@ -84,6 +85,10 @@ const basicevaluate = function (a, b, operator) {
       result = a * b;
       break;
     case "/":
+      if (b === 0) {
+        expression = "Division by zero";
+        return expression;
+      }
       result = a / b;
       break;
     case "%":
@@ -95,7 +100,27 @@ const basicevaluate = function (a, b, operator) {
   console.log(results);
   return result;
 };
-
+mfeBtn.addEventListener("click", () => {
+  mfe = !mfe;
+  displaymode.textContent = mfe ? "e" : "f"; // update div text
+});
+// mfeBtn.addEventListener("click", function () {
+//   if (mfe) {
+//     mfe = false;
+//   } else {
+//     mfe = true;
+//   }
+//   //displaymode.textContent = mfe ? console.log("e") : console.log("f");
+//   displaymode.textContent = mfe ? "e" : "f";
+//   console.log("cesx");
+// });
+function formatNumber(num) {
+  if (mfe) {
+    return num.toExponential(6);
+  } else {
+    return num.toFixed(6);
+  }
+}
 openBracket.addEventListener("click", function () {
   expression += "(";
   display.textContent = expression;
@@ -107,7 +132,7 @@ closeBracket.addEventListener("click", function () {
 });
 
 pieBtn.addEventListener("click", function () {
-  expression += 2.73;
+  expression += Math.PI;
   display.textContent = expression;
 });
 
@@ -139,7 +164,24 @@ degreeBtn.addEventListener("click", function () {
   degree = true;
 });
 
-dmsBtn.addEventListener("click", function () {});
+dmsBtn.addEventListener("click", function () {
+  if (expression === "") {
+    display.textContent = "Provide Input";
+    return;
+  }
+  let num = Number(expression);
+  dmsConversion(num);
+});
+
+const dmsConversion = function (num) {
+  const digit = num - Math.floor(num);
+  const degree = num.toFixed();
+  const min = digit * 60;
+  const minute = min.toFixed();
+  const sec = min - Math.floor(min);
+  const second = (sec * 60).toFixed(2);
+  display.textContent = `${degree}∘ ${minute}′ ${second}′′`;
+};
 
 equals.addEventListener("click", function () {
   if (expression !== "") {
@@ -223,6 +265,12 @@ const spFunctions = function (func) {
       result = Math.log(num);
       break;
     case "sqrt":
+      // There is a bug here
+      if (num < 0) {
+        display.textContent = "Error: Negative input";
+        expression = "";
+        return;
+      }
       result = Math.sqrt(num);
       break;
     case "abs":
@@ -379,7 +427,7 @@ backBtn.addEventListener("click", function () {
 // ADD BODMAS
 // INSERT COMMA IN NUMBERS THEN OPERATION ERROR
 // 2ND
-// F-E
-// DEGREE
+// displaying F-E and managing numbers
+// DEG
 // HISTORY
 // ADDING ERROS DISPLAYED

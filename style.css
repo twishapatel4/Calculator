@@ -24,6 +24,13 @@ body {
   border-radius: 5px;
   height: 100px;
 }
+.displayMode {
+  font-size: 2rem;
+  text-align: left;
+  color: red; /* make text clearly visible */
+  background: yellow; /* highlight background */
+  border: 1px solid black;
+}
 .partial-sum {
   text-align: left;
   margin-bottom: 0;
