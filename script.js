@@ -7,6 +7,11 @@ const memoryButtons = document.querySelectorAll(".memory");
 
 // Mode Buttons (DEG, F-E)
 const modeButtons = document.querySelectorAll(".mode");
+const msBtn = document.querySelector(".ms");
+const mpBtn = document.querySelector(".mp");
+const mmBtn = document.querySelector(".mm");
+const mcBtn = document.querySelector(".mc");
+const mrBtn = document.querySelector(".mr");
 
 const trigButtons = document.querySelectorAll(".trig");
 const openBracket = document.querySelector(".bracket.open");
@@ -32,9 +37,11 @@ const tenPowerBtn = document.querySelector(".fn.ten-power");
 const floorBtn = document.querySelector(".fn.floor");
 const randBtn = document.querySelector(".fn.rand");
 const ceilBtn = document.querySelector(".fn.ceil");
-const degreeBtn = document.querySelector(".fn.degree");
+const degreeBtn = document.querySelector(".fn.deg");
 const dmsBtn = document.querySelector(".fn.dms");
+const pieBtn = document.querySelector(".fn.pie");
 
+const backBtn = document.querySelector(".back");
 const clearBtn = document.querySelector(".fn.clear");
 clearBtn.addEventListener("click", function () {
   clear();
@@ -50,6 +57,10 @@ let operatorclicked = false;
 let expression = "";
 let resultShown = false;
 let pendingUnaryOperation = null;
+let isPowerOp = false;
+let powerBase = null;
+let degree = false;
+let memory = 0;
 //functions
 
 const clear = function () {
@@ -59,12 +70,6 @@ const clear = function () {
   results = [];
   expression = "";
   operatorclicked = false;
-};
-
-const colllectOutput = function (num) {
-  result = num;
-  expression = num.toString();
-  display.textContent = expression;
 };
 
 const basicevaluate = function (a, b, operator) {
@@ -91,24 +96,6 @@ const basicevaluate = function (a, b, operator) {
   return result;
 };
 
-const trigEvaluate = function (val, num) {
-  switch (val) {
-    case "tan":
-      return Math.tan(num);
-    case "sin":
-      return Math.sin(num);
-    case "cos":
-      return Math.cos(num);
-    case "sec":
-      return 1 / Math.cos(num);
-    case "cosec":
-      return 1 / Math.sin(num);
-    case "cot":
-      return 1 / Math.tan(num);
-  }
-};
-
-//// Event listener
 openBracket.addEventListener("click", function () {
   expression += "(";
   display.textContent = expression;
@@ -116,6 +103,11 @@ openBracket.addEventListener("click", function () {
 
 closeBracket.addEventListener("click", function () {
   expression += ")";
+  display.textContent = expression;
+});
+
+pieBtn.addEventListener("click", function () {
+  expression += 2.73;
   display.textContent = expression;
 });
 
@@ -138,18 +130,48 @@ decimal.addEventListener("click", function () {
   // console.log(".");
 });
 
+degreeBtn.addEventListener("click", function () {
+  //degrees = radians × (180 / π)
+  if (expression === "") {
+    display.textContent = "Cannot perform Operations";
+    return;
+  }
+  degree = true;
+});
+
+dmsBtn.addEventListener("click", function () {});
+
 equals.addEventListener("click", function () {
   if (expression !== "") {
     numbers.push(Number(expression));
+  }
+  if (pendingUnaryOperation) {
+    spFunctions(pendingUnaryOperation);
+    pendingUnaryOperation = null;
+    resultShown = true;
+    return;
+  }
+  if (isPowerOp) {
+    evaluatePower(powerBase);
+    return;
+  }
+  if (degree) {
+    let degrees = Number(expression);
+    num = degrees * (Math.PI / 180);
+    result = num;
+    expression = num.toString();
+    display.textContent = expression;
+    degree = false;
+    return;
   }
   let res = numbers[0];
   for (let i = 0; i < op.length; i++) {
     res = basicevaluate(res, numbers[i + 1], op[i]);
   }
   display.textContent = res;
+  expression = res.toString();
   result = res;
   resultShown = true;
-  expression = res.toString();
   numbers = [];
   op = [];
 });
@@ -163,27 +185,141 @@ operatorButtons.forEach((button) => {
     } else {
       numbers.push(Number(expression));
     }
-    // operatorclicked = true;
-    // numbers.push(Number(expression));
-
     expression = "";
     const value = button.textContent;
-    // console.log(value);
     op.push(value);
     display.textContent += value + " ";
   });
 });
-
 numberButtons.forEach((button) => {
   button.addEventListener("click", () => {
+    const value = button.textContent;
+    if (isPowerOp) {
+      display.textContent = `pow(${powerBase}, ${expression}`;
+    }
     if (resultShown) {
       clear();
       resultShown = false;
     }
-    const value = button.textContent;
     expression += value;
     display.textContent += value + "";
   });
+});
+
+const spFunctions = function (func) {
+  const num = Number(expression);
+  let result;
+  if (expression === "") {
+    display.textContent = `${func}(`;
+    pendingUnaryOperation = func;
+    return;
+  }
+  switch (func) {
+    case "log":
+      console.log("log");
+      result = Math.log10(num);
+      break;
+    case "ln":
+      result = Math.log(num);
+      break;
+    case "sqrt":
+      result = Math.sqrt(num);
+      break;
+    case "abs":
+      result = Math.abs(num);
+      break;
+    case "ceil":
+      result = Math.ceil(num);
+      break;
+    case "floor":
+      result = Math.floor(num);
+      break;
+    case "exp":
+      result = Math.exp(num);
+      break;
+    case "square":
+      result = num * num;
+      break;
+    case "reciprocal":
+      result = 1 / num;
+      break;
+    case "factorial":
+      result = 1;
+      for (let i = 2; i <= num; i++) result = result * i;
+      break;
+    case "tan":
+      result = Math.tan(num);
+      break;
+    case "sin":
+      result = Math.sin(num);
+      break;
+    case "cos":
+      result = Math.cos(num);
+      break;
+    case "sec":
+      result = 1 / Math.cos(num);
+      break;
+    case "cosec":
+      result = 1 / Math.sin(num);
+      break;
+    case "cot":
+      result = 1 / Math.tan(num);
+      break;
+  }
+  display.textContent = result;
+  expression = result.toString();
+  results.push(result);
+  resultShown = true;
+  pendingUnaryOperation = null;
+};
+
+ceilBtn.addEventListener("click", () => spFunctions("ceil"));
+floorBtn.addEventListener("click", () => spFunctions("floor"));
+randBtn.addEventListener("click", function () {
+  result = Math.floor(Math.random() * 100);
+  display.textContent = result;
+});
+squareBtn.addEventListener("click", () => spFunctions("square"));
+reciprocalBtn.addEventListener("click", () => spFunctions("reciprocal"));
+sqrtBtn.addEventListener("click", () => spFunctions("sqrt"));
+absBtn.addEventListener("click", () => spFunctions("abs"));
+factorialBtn.addEventListener("click", () => spFunctions("factorial"));
+logBtn.addEventListener("click", () => spFunctions("log"));
+lnBtn.addEventListener("click", () => spFunctions("ln"));
+expBtn.addEventListener("click", () => spFunctions("exp"));
+powerBtn.addEventListener("click", function () {
+  if (expression !== "") {
+    powerBase = Number(expression);
+    expression = "";
+    isPowerOp = true;
+    display.textContent = `pow(${powerBase}, `;
+  } else {
+    display.textContent = "Enter Base first";
+  }
+});
+const evaluatePower = function (a) {
+  console.log(a);
+  const exponent = Number(expression);
+  console.log(exponent);
+  const res = Math.pow(a, exponent);
+  console.log(res);
+  expression = res.toString();
+  console.log(expression);
+  display.textContent = expression;
+  result = res;
+  resultShown = true;
+  isPowerOp = false;
+  powerBase = null;
+  return;
+};
+tenPowerBtn.addEventListener("click", function () {
+  isPowerOp = true;
+  if (expression === "") {
+    display.textContent = `10 pow(`;
+    powerBase = 10;
+  } else {
+    display.textContent = "Base will always be 10";
+  }
 });
 
 trigButtons.forEach((button) => {
@@ -198,105 +334,52 @@ trigButtons.forEach((button) => {
     }
     const value = button.textContent;
     console.log(value);
-    let num = Number(expression);
-    let x = trigEvaluate(value, num);
-    results.push(x);
-    display.textContent = x;
-
-    resultShown = true;
+    spFunctions(value);
   });
 });
 
-ceilBtn.addEventListener("click", function () {
-  let num = expression;
-  num = Math.ceil(num);
-  colllectOutput(num);
+//Working with memory
+msBtn.addEventListener("click", function () {
+  memory = results[results.length - 1];
+  display.textContent = memory;
+
+  console.log("saved");
+  console.log("memory:", memory);
 });
 
-floorBtn.addEventListener("click", function () {
-  let num = expression;
-  num = Math.floor(num);
-  colllectOutput(num);
+mcBtn.addEventListener("click", function () {
+  memory = 0;
+  display.textContent = memory;
+  console.log("memory:", memory);
 });
 
-randBtn.addEventListener("click", function () {
-  const out = Math.ceil(Math.random() * 10);
-  colllectOutput(out);
+mrBtn.addEventListener("click", function () {
+  display.textContent = memory;
+  console.log("read");
+  console.log("memory:", memory);
 });
 
-squareBtn.addEventListener("click", function () {
-  if (resultShown) {
-    clear();
-    resultShown = false;
-  }
-  const numStr = expression;
-  const num = Number(numStr);
-  const squared = num * num;
-  // console.log(squared);
-  colllectOutput(squared);
+mpBtn.addEventListener("click", function () {
+  memory += results[results.length - 1];
+  display.textContent = memory;
+  console.log("memory:", memory);
 });
 
-reciprocalBtn.addEventListener("click", function () {
-  let num = Number(expression);
-  num = 1 / num;
-  colllectOutput(num);
+mmBtn.addEventListener("click", function () {
+  memory -= results[results.length - 1];
+  display.textContent = memory;
+  console.log("memory:", memory);
 });
 
-sqrtBtn.addEventListener("click", function () {
-  if (resultShown) {
-    clear();
-    resultShown = false;
-  }
-  const num = Number(expression);
-  const sqrt = Math.sqrt(num);
-  colllectOutput(sqrt);
+backBtn.addEventListener("click", function () {
+  expression = expression.slice(0, -1);
+  display.textContent = expression;
 });
 
-absBtn.addEventListener("click", function () {
-  // console.log("Absolute:");
-  let num = Number(expression);
-  num = Math.abs(num);
-  // console.log("Absolute:", num);
-  colllectOutput(num);
-});
-
-factorialBtn.addEventListener("click", function () {
-  let num = Number(expression);
-  let fact = 1;
-  if (isNaN(num) || num < 0 || !Number.isInteger(num)) {
-    alert("Factorial is only defined for non-negative integers.");
-    return;
-  }
-  for (let i = 2; i <= num; i++) {
-    fact = fact * i;
-  }
-
-  // console.log("factorial:", result);
-  colllectOutput(fact);
-});
-
-logBtn.addEventListener("click", function () {
-  if (expression === "") {
-    display.textContent = "log(";
-    pendingUnaryOperation = "log";
-    return;
-  }
-  let num = Number(expression);
-  num = Math.log10(num);
-  colllectOutput(num);
-});
-
-lnBtn.addEventListener("click", function () {
-  let num = Number(expression);
-  num = Math.log(num);
-  colllectOutput(num);
-});
-
-expBtn.addEventListener("click", function () {
-  let num = Number(expression);
-  console.log(num);
-  num = Math.exp(num);
-  colllectOutput(num);
-});
-
-powerBtn.addEventListener("click", function () {});
+// ADD BODMAS
+// INSERT COMMA IN NUMBERS THEN OPERATION ERROR
+// 2ND
+// F-E
+// DEGREE
+// HISTORY
+// ADDING ERROS DISPLAYED
